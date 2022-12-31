@@ -2,6 +2,7 @@
   "name": "@withcardinal/rp-server",
   "version": "0.0.0",
   "description": "Cardinal remote procedure server",
+  "type": "module",
   "exports": {
     ".": "./dist/index.js"
   },
@@ -24,12 +25,14 @@
   "homepage": "https://github.com/with-cardinal/rp-server#readme",
   "devDependencies": {
     "@types/node": "18.11.18",
+    "@types/supertest": "2.0.12",
     "@typescript-eslint/eslint-plugin": "5.47.1",
     "@typescript-eslint/parser": "5.47.1",
     "eslint": "8.31.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "prettier": "2.8.1",
+    "supertest": "6.3.3",
     "typescript": "4.9.4"
   },
   "dependencies": {

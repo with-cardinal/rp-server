@@ -39,7 +39,9 @@ export function RPListener(spec: RPListenerSpec): RequestListener {
     res.on("finish", () => {
       req.socket.unref();
       const end = process.hrtime.bigint();
-      console.log(`${url.pathname} ${res.statusCode} ${end - start}ns`);
+      console.log(
+        `${req.method} ${url.pathname} ${res.statusCode} ${end - start}ns`
+      );
     });
 
     if (url.pathname === "/rpc" && req.method === "GET") {
@@ -189,7 +191,7 @@ async function callProc(
     return Err(new RPError("Procedure not found", Status.NotFound));
   }
 
-  if (mutation !== procedureSpec.mutation) {
+  if (mutation !== !!procedureSpec.mutation) {
     return Err(new RPError("Method not allowed", Status.MethodNotAllowed));
   }
 
