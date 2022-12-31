@@ -25,9 +25,7 @@ export type VersionSpec = Record<string, ProcedureSpec>;
 
 export type ProcedureSpec = {
   mutation?: boolean;
-  proc: (
-    payload: ValidJSONObject | undefined
-  ) => Promise<ValidJSON> | ValidJSON;
+  proc: (payload: ValidJSONObject) => Promise<ValidJSON> | ValidJSON;
 };
 
 export function RPListener(spec: RPListenerSpec): RequestListener {
@@ -106,7 +104,7 @@ export function handleMutationRpc(
   let body = "";
   let length = 0;
 
-  res.on("data", (data) => {
+  req.on("data", (data) => {
     length += data.length;
     if (length > BODY_LIMIT) {
       errorResponse(
@@ -118,7 +116,7 @@ export function handleMutationRpc(
     body += data;
   });
 
-  res.on("end", () => {
+  req.on("end", () => {
     // response has already been sent if body is too long
     if (length > BODY_LIMIT) {
       return;
