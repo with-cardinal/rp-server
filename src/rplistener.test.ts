@@ -2,14 +2,14 @@ import { after, describe, it } from "node:test";
 import request from "supertest";
 import { RPListener } from "./rplistener.js";
 import http from "node:http";
-import { Status, ValidJSONObject } from "@withcardinal/ts-std";
+import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
 
-const spec = {
+export const spec = {
   versions: {
     "1": {
       hello: {
-        proc: (payload: ValidJSONObject) => {
+        proc: (payload: { name: string }) => {
           const name = payload["name"];
           return { say: `Hello ${name}` };
         },
@@ -117,6 +117,16 @@ describe("mutation", () => {
       .set("content-type", "application/json");
 
     assert.strictEqual(response.status, Status.BadRequest);
+  });
+
+  it("fails when payload is too long", async () => {
+    const response = await request(server)
+      .post("/rpc")
+      .send({ p: "mutate", a: "a".repeat(1_000_001) })
+      .set("rpc-api-version", "1")
+      .set("content-type", "application/json");
+
+    assert.strictEqual(response.status, Status.PayloadTooLarge);
   });
 
   it("fails when error is thrown", async () => {

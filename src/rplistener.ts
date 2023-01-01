@@ -25,7 +25,8 @@ export type VersionSpec = Record<string, ProcedureSpec>;
 
 export type ProcedureSpec = {
   mutation?: boolean;
-  proc: (payload: ValidJSONObject) => Promise<ValidJSON> | ValidJSON;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  proc: Function;
 };
 
 export function RPListener(spec: RPListenerSpec): RequestListener {
