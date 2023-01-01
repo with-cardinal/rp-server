@@ -23,11 +23,10 @@ export type RPListenerSpec = {
 
 export type VersionSpec = Record<string, ProcedureSpec>;
 
-export type ProcedureSpec = {
+export interface ProcedureSpec {
   mutation?: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  proc: Function;
-};
+  proc: (payload: unknown) => ValidJSON | Promise<ValidJSON>;
+}
 
 export function RPListener(spec: RPListenerSpec): RequestListener {
   return (req, res) => {
@@ -169,7 +168,7 @@ async function callProc(
   spec: RPListenerSpec,
   version: string | undefined,
   procedure: string | null,
-  payload: ValidJSONObject,
+  payload: unknown,
   mutation: boolean
 ): Promise<Result<ValidJSON, RPError>> {
   if (!version) {

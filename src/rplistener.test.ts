@@ -1,17 +1,16 @@
 import { after, describe, it } from "node:test";
 import request from "supertest";
-import { RPListener } from "./rplistener.js";
+import { RPListener, RPListenerSpec } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
 
-export const spec = {
+export const spec: RPListenerSpec = {
   versions: {
     "1": {
       hello: {
-        proc: (payload: { name: string }) => {
-          const name = payload["name"];
-          return { say: `Hello ${name}` };
+        proc: (payload: unknown) => {
+          return { say: `Hello ${payload}` };
         },
       },
       queryError: {
