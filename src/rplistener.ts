@@ -25,9 +25,8 @@ export type VersionSpec = Record<string, ProcedureSpec>;
 
 export type ProcedureSpec = {
   mutation?: boolean;
-  proc: (
-    payload: ValidJSONObject | undefined
-  ) => Promise<ValidJSON> | ValidJSON;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  proc: Function;
 };
 
 export function RPListener(spec: RPListenerSpec): RequestListener {
@@ -39,7 +38,9 @@ export function RPListener(spec: RPListenerSpec): RequestListener {
     res.on("finish", () => {
       req.socket.unref();
       const end = process.hrtime.bigint();
-      console.log(`${url.pathname} ${res.statusCode} ${end - start}ns`);
+      console.log(
+        `${req.method} ${url.pathname} ${res.statusCode} ${end - start}ns`
+      );
     });
 
     if (url.pathname === "/rpc" && req.method === "GET") {
@@ -104,7 +105,7 @@ export function handleMutationRpc(
   let body = "";
   let length = 0;
 
-  res.on("data", (data) => {
+  req.on("data", (data) => {
     length += data.length;
     if (length > BODY_LIMIT) {
       errorResponse(
@@ -116,7 +117,7 @@ export function handleMutationRpc(
     body += data;
   });
 
-  res.on("end", () => {
+  req.on("end", () => {
     // response has already been sent if body is too long
     if (length > BODY_LIMIT) {
       return;
@@ -189,7 +190,7 @@ async function callProc(
     return Err(new RPError("Procedure not found", Status.NotFound));
   }
 
-  if (mutation !== procedureSpec.mutation) {
+  if (mutation !== !!procedureSpec.mutation) {
     return Err(new RPError("Method not allowed", Status.MethodNotAllowed));
   }
 
