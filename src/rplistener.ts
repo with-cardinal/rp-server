@@ -14,9 +14,7 @@ import {
   ValidJSONObject,
 } from "@withcardinal/ts-std";
 import { RPError } from "./rperror.js";
-
-const BODY_LIMIT = 1_000_000;
-
+import { DEFAULT_BODY_LIMIT } from "./index.js";
 export type RPListenerSpec = {
   versions: Record<string, VersionSpec>;
 };
@@ -36,7 +34,10 @@ export type ProcedureSpec = {
   ) => ValidJSON | Promise<ValidJSON>;
 };
 
-export function RPListener(spec: RPListenerSpec): RequestListener {
+export function RPListener(
+  spec: RPListenerSpec,
+  payloadLimitBytes: number = DEFAULT_BODY_LIMIT
+): RequestListener {
   return (req, res) => {
     req.socket.ref();
     const start = process.hrtime.bigint();
@@ -57,7 +58,7 @@ export function RPListener(spec: RPListenerSpec): RequestListener {
       req.method === "POST" &&
       req.headers["content-type"] === "application/json"
     ) {
-      handleMutationRpc(req, res, spec);
+      handleMutationRpc(req, res, spec, payloadLimitBytes);
     } else {
       errorResponse(res, new RPError("Not found", Status.NotFound));
     }
@@ -107,32 +108,15 @@ export function handleQueryRpc(
 export function handleMutationRpc(
   req: IncomingMessage,
   res: ServerResponse,
-  spec: RPListenerSpec
+  spec: RPListenerSpec,
+  payloadLimitBytes: number
 ) {
   const version = readVersion(req);
   const auth = readAuthorization(req);
 
   let body = "";
-  let length = 0;
-
-  req.on("data", (data) => {
-    length += data.length;
-    if (length > BODY_LIMIT) {
-      errorResponse(
-        res,
-        new RPError("Payload too large", Status.PayloadTooLarge)
-      );
-    }
-
-    body += data;
-  });
 
   req.on("end", () => {
-    // response has already been sent if body is too long
-    if (length > BODY_LIMIT) {
-      return;
-    }
-
     let payload: { p: string; a: ValidJSONObject };
     try {
       payload = JSON.parse(body);
@@ -161,6 +145,25 @@ export function handleMutationRpc(
         errorResponse(res, result.error);
       }
     });
+  });
+
+  let length = 0;
+
+  req.on("data", (data) => {
+    length += data.length;
+    if (length > payloadLimitBytes) {
+      req.removeAllListeners("end");
+      req.removeAllListeners("data");
+
+      req.resume();
+
+      errorResponse(
+        res,
+        new RPError("Payload too large", Status.PayloadTooLarge)
+      );
+    }
+
+    body += data;
   });
 }
 
