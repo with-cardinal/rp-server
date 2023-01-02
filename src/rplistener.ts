@@ -23,10 +23,18 @@ export type RPListenerSpec = {
 
 export type VersionSpec = Record<string, ProcedureSpec>;
 
-export interface ProcedureSpec {
+export type Authorization = {
+  scheme: string;
+  token: string;
+};
+
+export type ProcedureSpec = {
   mutation?: boolean;
-  proc: (payload: unknown) => ValidJSON | Promise<ValidJSON>;
-}
+  proc: (
+    auth: Authorization,
+    payload: unknown
+  ) => ValidJSON | Promise<ValidJSON>;
+};
 
 export function RPListener(spec: RPListenerSpec): RequestListener {
   return (req, res) => {
@@ -63,6 +71,8 @@ export function handleQueryRpc(
   url: URL
 ) {
   const version = readVersion(req);
+  const auth = readAuthorization(req);
+
   const procedure = url.searchParams.get("p");
 
   const rawArgs = url.searchParams.get("a");
@@ -83,7 +93,7 @@ export function handleQueryRpc(
     return;
   }
 
-  callProc(spec, version, procedure, args, false).then((result) => {
+  callProc(spec, version, procedure, auth, args, false).then((result) => {
     if (isOk(result)) {
       res.setHeader("Content-Type", "application/json");
       res.writeHead(200);
@@ -100,6 +110,7 @@ export function handleMutationRpc(
   spec: RPListenerSpec
 ) {
   const version = readVersion(req);
+  const auth = readAuthorization(req);
 
   let body = "";
   let length = 0;
@@ -141,7 +152,7 @@ export function handleMutationRpc(
     const procedure = payload.p;
     const args = payload.a;
 
-    callProc(spec, version, procedure, args, true).then((result) => {
+    callProc(spec, version, procedure, auth, args, true).then((result) => {
       if (isOk(result)) {
         res.setHeader("Content-Type", "application/json");
         res.writeHead(200);
@@ -158,6 +169,23 @@ function readVersion(req: IncomingMessage): string | undefined {
   return Array.isArray(rawVersion) ? rawVersion[0] : rawVersion;
 }
 
+function readAuthorization(req: IncomingMessage): Authorization {
+  const auth = req.headers["authorization"];
+  if (!auth) {
+    return { scheme: "", token: "" };
+  }
+
+  const parts = auth.split(" ");
+  const scheme = parts[0];
+  const token = parts[1];
+
+  if (!scheme || !token) {
+    return { scheme: "", token: "" };
+  }
+
+  return { scheme, token };
+}
+
 function errorResponse(res: ServerResponse, error: RPError) {
   res.setHeader("Content-Type", "application/json");
   res.writeHead(error.status);
@@ -168,6 +196,7 @@ async function callProc(
   spec: RPListenerSpec,
   version: string | undefined,
   procedure: string | null,
+  auth: Authorization,
   payload: unknown,
   mutation: boolean
 ): Promise<Result<ValidJSON, RPError>> {
@@ -194,7 +223,7 @@ async function callProc(
   }
 
   try {
-    return Ok(await procedureSpec.proc(payload));
+    return Ok(await procedureSpec.proc(auth, payload));
   } catch (e) {
     return Err(
       new RPError(
