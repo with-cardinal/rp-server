@@ -10,7 +10,8 @@ export const spec: RPListenerSpec = {
     "1": {
       hello: {
         proc: (payload: unknown) => {
-          return { say: `Hello ${payload}` };
+          const conv = payload as { name: string };
+          return { say: `Hello ${conv.name}` };
         },
       },
       queryError: {
