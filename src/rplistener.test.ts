@@ -1,22 +1,27 @@
 import { after, describe, it } from "node:test";
 import request from "supertest";
-import { RPListener } from "./rplistener.js";
+import { RPListener, RPListenerSpec, Authorization } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
 
-export const spec = {
+export const spec: RPListenerSpec = {
   versions: {
     "1": {
       hello: {
-        proc: (payload: { name: string }) => {
-          const name = payload["name"];
-          return { say: `Hello ${name}` };
+        proc: (_auth: Authorization, payload: unknown) => {
+          const conv = payload as { name: string };
+          return { say: `Hello ${conv.name}` };
         },
       },
       queryError: {
         proc: () => {
           throw new Error("Oh no");
+        },
+      },
+      queryAuth: {
+        proc: (auth: Authorization) => {
+          return auth;
         },
       },
       mutate: {
@@ -29,6 +34,12 @@ export const spec = {
         mutation: true,
         proc: () => {
           throw new Error("Oh no");
+        },
+      },
+      mutateAuth: {
+        mutation: true,
+        proc: (auth: Authorization) => {
+          return auth;
         },
       },
     },
@@ -72,6 +83,16 @@ describe("query", () => {
       .set("rpc-api-version", "1");
 
     assert.strictEqual(response.status, Status.InternalServerError);
+  });
+
+  it("handles authorization", async () => {
+    const response = await request(server)
+      .get(`/rpc?p=queryAuth`)
+      .set("rpc-api-version", "1")
+      .set("authorization", "Bearer Hi");
+
+    assert.strictEqual(response.status, Status.OK);
+    assert.deepEqual(response.body, { scheme: "Bearer", token: "Hi" });
   });
 
   it("succeeds", async () => {
@@ -137,6 +158,18 @@ describe("mutation", () => {
       .set("content-type", "application/json");
 
     assert.strictEqual(response.status, Status.InternalServerError);
+  });
+
+  it("handles auth", async () => {
+    const response = await request(server)
+      .post("/rpc")
+      .send({ p: "mutateAuth" })
+      .set("rpc-api-version", "1")
+      .set("content-type", "application/json")
+      .set("authorization", "Bearer Hi");
+
+    assert.strictEqual(response.status, Status.OK);
+    assert.deepEqual(response.body, { scheme: "Bearer", token: "Hi" });
   });
 
   it("succeeds", async () => {

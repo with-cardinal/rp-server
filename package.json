@@ -36,7 +36,7 @@
     "typescript": "4.9.4"
   },
   "dependencies": {
-    "@withcardinal/ts-std": "0.0.8"
+    "@withcardinal/ts-std": "0.0.9"
   },
   "volta": {
     "node": "19.3.0"
