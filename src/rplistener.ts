@@ -15,16 +15,7 @@ import {
 } from "@withcardinal/ts-std";
 import { RPError } from "./rperror.js";
 import { DEFAULT_BODY_LIMIT } from "./index.js";
-export type RPListenerSpec = {
-  versions: Record<string, VersionSpec>;
-};
-
-export type VersionSpec = Record<string, ProcedureSpec>;
-
-export type Authorization = {
-  scheme: string;
-  token: string;
-};
+import type { Authorization, RPSpec } from "./types.js";
 
 export type ProcedureSpec = {
   mutation?: boolean;
@@ -35,7 +26,7 @@ export type ProcedureSpec = {
 };
 
 export function RPListener(
-  spec: RPListenerSpec,
+  spec: RPSpec,
   payloadLimitBytes: number = DEFAULT_BODY_LIMIT
 ): RequestListener {
   return (req, res) => {
@@ -68,7 +59,7 @@ export function RPListener(
 export function handleQueryRpc(
   req: IncomingMessage,
   res: ServerResponse,
-  spec: RPListenerSpec,
+  spec: RPSpec,
   url: URL
 ) {
   const version = readVersion(req);
@@ -108,7 +99,7 @@ export function handleQueryRpc(
 export function handleMutationRpc(
   req: IncomingMessage,
   res: ServerResponse,
-  spec: RPListenerSpec,
+  spec: RPSpec,
   payloadLimitBytes: number
 ) {
   const version = readVersion(req);
@@ -196,7 +187,7 @@ function errorResponse(res: ServerResponse, error: RPError) {
 }
 
 async function callProc(
-  spec: RPListenerSpec,
+  spec: RPSpec,
   version: string | undefined,
   procedure: string | null,
   auth: Authorization,
