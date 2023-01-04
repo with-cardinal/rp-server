@@ -1,11 +1,12 @@
 import { after, describe, it } from "node:test";
 import request from "supertest";
-import { RPListener, RPListenerSpec, Authorization } from "./rplistener.js";
+import { RPListener } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
+import type { RPSpec, Authorization } from "./types.js";
 
-export const spec: RPListenerSpec = {
+export const spec: RPSpec = {
   versions: {
     "1": {
       hello: {
