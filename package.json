@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Cardinal remote procedure server",
   "type": "module",
-  "types": "./dist/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js"
   },
