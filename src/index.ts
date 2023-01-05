@@ -19,10 +19,15 @@ export function serve(
     timeout: 5000,
     payloadLimitBytes: DEFAULT_BODY_LIMIT,
   }
-) {
+): () => Promise<void> {
   const listener = RPListener(spec, options.payloadLimitBytes);
   const server = http.createServer(listener);
   server.timeout = options.timeout;
   server.listen(port);
   console.log(`Listening on ${port}`);
+
+  return () =>
+    new Promise<void>((resolve) => {
+      server.close(() => resolve());
+    });
 }
