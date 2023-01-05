@@ -4,15 +4,14 @@ import { RPListener } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
-import type { RPSpec, Authorization } from "./types.js";
+import type { Authorization } from "./types.js";
 
-export const spec: RPSpec = {
+export const spec = {
   versions: {
     "1": {
       hello: {
-        proc: (_auth: Authorization, payload: unknown) => {
-          const conv = payload as { name: string };
-          return { say: `Hello ${conv.name}` };
+        proc: (_auth: Authorization, payload: { name: string }) => {
+          return { say: `Hello ${payload.name}` };
         },
       },
       queryError: {
