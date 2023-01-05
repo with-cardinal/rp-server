@@ -20,10 +20,11 @@ export async function serve(
     payloadLimitBytes: DEFAULT_BODY_LIMIT,
   }
 ): Promise<() => Promise<void>> {
+  const listener = RPListener(spec, options.payloadLimitBytes);
+  const server = http.createServer(listener);
+  server.timeout = options.timeout;
+
   return await new Promise((resolve) => {
-    const listener = RPListener(spec, options.payloadLimitBytes);
-    const server = http.createServer(listener);
-    server.timeout = options.timeout;
     server.listen(port, () => {
       console.log(`Listening on ${port}`);
       resolve(
