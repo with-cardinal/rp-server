@@ -20,7 +20,7 @@ export async function serve(
     payloadLimitBytes: DEFAULT_BODY_LIMIT,
   }
 ): Promise<() => Promise<void>> {
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const listener = RPListener(spec, options.payloadLimitBytes);
     const server = http.createServer(listener);
     server.timeout = options.timeout;
