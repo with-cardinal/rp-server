@@ -13,9 +13,9 @@ import {
   ValidJSON,
   ValidJSONObject,
 } from "@withcardinal/ts-std";
-import { RPError } from "./rperror.js";
+import { RPError } from "@withcardinal/rp-client";
 import { DEFAULT_BODY_LIMIT } from "./index.js";
-import type { Authorization, RPSpec } from "./types.js";
+import type { Authorization, RPSpec } from "@withcardinal/rp-client";
 
 export type ProcedureSpec = {
   mutation?: boolean;

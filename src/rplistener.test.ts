@@ -4,7 +4,7 @@ import { RPListener } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
-import type { Authorization } from "./types.js";
+import type { Authorization } from "@withcardinal/rp-client";
 
 export const spec = {
   versions: {
