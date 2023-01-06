@@ -4,41 +4,34 @@ import { RPListener } from "./rplistener.js";
 import http from "node:http";
 import { Status } from "@withcardinal/ts-std";
 import assert from "node:assert";
-import type { Authorization } from "@withcardinal/rp-client";
+import type { Authorization, RPSpec } from "./base.js";
 
-export const spec = {
+export const spec: RPSpec = {
   versions: {
     "1": {
-      hello: {
-        proc: (_auth: Authorization, payload: { name: string }) => {
+      queries: {
+        hello: (_auth: Authorization, payload: { name: string }) => {
           return { say: `Hello ${payload.name}` };
         },
-      },
-      queryError: {
-        proc: () => {
+
+        queryError: () => {
           throw new Error("Oh no");
         },
-      },
-      queryAuth: {
-        proc: (auth: Authorization) => {
+
+        queryAuth: (auth: Authorization) => {
           return auth;
         },
       },
-      mutate: {
-        mutation: true,
-        proc: () => {
+      mutations: {
+        mutate: () => {
           return { ok: true };
         },
-      },
-      mutateError: {
-        mutation: true,
-        proc: () => {
+
+        mutateError: () => {
           throw new Error("Oh no");
         },
-      },
-      mutateAuth: {
-        mutation: true,
-        proc: (auth: Authorization) => {
+
+        mutateAuth: (auth: Authorization) => {
           return auth;
         },
       },

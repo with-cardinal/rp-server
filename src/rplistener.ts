@@ -13,9 +13,9 @@ import {
   ValidJSON,
   ValidJSONObject,
 } from "@withcardinal/ts-std";
-import { RPError } from "@withcardinal/rp-client";
+import { RPError } from "./base.js";
 import { DEFAULT_BODY_LIMIT } from "./index.js";
-import type { Authorization, RPSpec } from "@withcardinal/rp-client";
+import type { Authorization, RPSpec } from "./base.js";
 
 export type ProcedureSpec = {
   mutation?: boolean;
@@ -189,7 +189,7 @@ function errorResponse(res: ServerResponse, error: RPError) {
 async function callProc(
   spec: RPSpec,
   version: string | undefined,
-  procedure: string | null,
+  procedureName: string | null,
   auth: Authorization,
   payload: unknown,
   mutation: boolean
@@ -203,21 +203,18 @@ async function callProc(
     return Err(new RPError("Version not found", Status.NotFound));
   }
 
+  if (!procedureName) {
+    return Err(new RPError("Procedure not found", Status.NotFound));
+  }
+
+  const procedure =
+    versionSpec[mutation ? "mutations" : "queries"][procedureName];
   if (!procedure) {
     return Err(new RPError("Procedure not found", Status.NotFound));
   }
 
-  const procedureSpec = versionSpec[procedure];
-  if (!procedureSpec) {
-    return Err(new RPError("Procedure not found", Status.NotFound));
-  }
-
-  if (mutation !== !!procedureSpec.mutation) {
-    return Err(new RPError("Method not allowed", Status.MethodNotAllowed));
-  }
-
   try {
-    return Ok(await procedureSpec.proc(auth, payload));
+    return Ok(await procedure(auth, payload));
   } catch (e) {
     return Err(
       new RPError(
