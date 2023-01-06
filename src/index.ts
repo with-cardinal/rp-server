@@ -1,9 +1,9 @@
 export * from "./rplistener.js";
-export { RPSpec, RPError } from "@withcardinal/rp-client";
+export type { RPSpec, RPError } from "./base.js";
 
 import { RPListener } from "./rplistener.js";
 import http from "node:http";
-import type { RPSpec } from "@withcardinal/rp-client";
+import type { RPSpec } from "./base.js";
 
 export const DEFAULT_BODY_LIMIT = 1_000_000;
 
