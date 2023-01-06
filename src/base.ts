@@ -12,8 +12,8 @@ export type RPSpec = {
 };
 
 export type VersionSpec = {
-  queries?: ProcedureMap;
-  mutations?: ProcedureMap;
+  queries: ProcedureMap;
+  mutations: ProcedureMap;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
