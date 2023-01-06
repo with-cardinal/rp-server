@@ -1,4 +1,5 @@
 import type { ValidJSON, ValidJSONObject, Status } from "@withcardinal/ts-std";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 export type Authorization = {
   scheme: string;
@@ -7,12 +8,16 @@ export type Authorization = {
 
 export type RPSpec = {
   versions: Record<string, VersionSpec>;
+  paths?: PathMap;
 };
 
-export type VersionSpec = { queries: ProcedureSet; mutations: ProcedureSet };
+export type VersionSpec = {
+  queries?: ProcedureMap;
+  mutations?: ProcedureMap;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ProcedureSet = Record<string, Procedure<any, any>>;
+export type ProcedureMap = Record<string, Procedure<any, any>>;
 
 export type ProcedureReturn = ValidJSON | Promise<ValidJSON>;
 
@@ -20,6 +25,13 @@ type Procedure<
   T extends ValidJSONObject | undefined,
   R extends ProcedureReturn
 > = (auth: Authorization, payload: T) => R;
+
+export type PathMap = Record<string, PathListener>;
+
+export type PathListener = (
+  req: IncomingMessage,
+  resp: ServerResponse<IncomingMessage>
+) => void | Promise<void>;
 
 export class RPError extends Error {
   status: Status;

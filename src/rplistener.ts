@@ -29,7 +29,7 @@ export function RPListener(
   spec: RPSpec,
   payloadLimitBytes: number = DEFAULT_BODY_LIMIT
 ): RequestListener {
-  return (req, res) => {
+  return async (req, res) => {
     req.socket.ref();
     const start = process.hrtime.bigint();
     const url = new URL(req.url || "", "http://localhost");
@@ -50,7 +50,18 @@ export function RPListener(
       req.headers["content-type"] === "application/json"
     ) {
       handleMutationRpc(req, res, spec, payloadLimitBytes);
+    } else if (url.pathname === "/rpc") {
+      errorResponse(res, new RPError("Not found", Status.NotFound));
     } else {
+      if (spec.paths) {
+        const path = spec.paths[url.pathname];
+
+        if (path) {
+          await path(req, res);
+          return;
+        }
+      }
+
       errorResponse(res, new RPError("Not found", Status.NotFound));
     }
   };
@@ -208,7 +219,7 @@ async function callProc(
   }
 
   const procedure =
-    versionSpec[mutation ? "mutations" : "queries"][procedureName];
+    versionSpec[mutation ? "mutations" : "queries"]?.[procedureName];
   if (!procedure) {
     return Err(new RPError("Procedure not found", Status.NotFound));
   }

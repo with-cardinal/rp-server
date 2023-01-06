@@ -37,6 +37,12 @@ export const spec: RPSpec = {
       },
     },
   },
+  paths: {
+    "/testPath": (_req, res) => {
+      res.writeHead(Status.OK);
+      res.end(JSON.stringify({ ok: true }));
+    },
+  },
 };
 
 const server = http.createServer(RPListener(spec));
@@ -171,6 +177,16 @@ describe("mutation", () => {
       .send({ p: "mutate", a: { name: "Whatever" } })
       .set("rpc-api-version", "1")
       .set("content-type", "application/json");
+
+    assert.strictEqual(response.status, Status.OK);
+  });
+});
+
+describe("paths", () => {
+  it("succeeds", async () => {
+    const response = await request(server)
+      .post("/testPath")
+      .send({ test: true });
 
     assert.strictEqual(response.status, Status.OK);
   });
