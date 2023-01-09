@@ -10,5 +10,18 @@
   ],
   "assignees": ["nalanj"],
   "reviewers": ["nalanj"],
-  "labels": ["dependencies"]
+  "labels": ["dependencies"],
+  
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    }
+  ]
+
 }
