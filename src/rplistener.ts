@@ -102,7 +102,7 @@ export function handleQueryRpc(
       res.writeHead(200);
       res.end(JSON.stringify(unwrap(result)));
     } else {
-      errorResponse(res, result.error);
+      errorResponse(res, result.err);
     }
   });
 }
@@ -144,7 +144,7 @@ export function handleMutationRpc(
         res.writeHead(200);
         res.end(JSON.stringify(unwrap(result)));
       } else {
-        errorResponse(res, result.error);
+        errorResponse(res, result.err);
       }
     });
   });
